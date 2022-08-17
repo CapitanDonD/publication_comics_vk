@@ -22,17 +22,17 @@ def download_xkcd_picture():
 def get_server_inf(group_id, token):
     url = 'https://api.vk.com/method/photos.getWallUploadServer'
     params = {
-        'group_id': group_id,
         'access_token': token,
-        'v': '5.131'
+        'v': '5.131',
+        'group_id': group_id
     }
     response = requests.get(url, params=params)
 
-    return response.json()['response']
+    return response.json()['response']['upload_url']
 
 def upload_server_picture(token):
     with open('image.jpg', 'rb') as file:
-        url = get_server_inf(214371524, token)['upload_url']
+        url = get_server_inf(214371524, token)
         files = {
             'photo': file
         }
