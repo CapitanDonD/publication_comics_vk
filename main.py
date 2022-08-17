@@ -37,18 +37,15 @@ def upload_server_picture(token):
             'photo': file
         }
         response = requests.post(url, files=files)
-    photo = response.json()['photo']
-    server = response.json()['server']
-    hash = response.json()['hash']
+        photo = response.json()['photo']
+        server = response.json()['server']
+        hash = response.json()['hash']
 
     return photo, server, hash
 
 def save_wall_photo(token):
     photo, server, hash = upload_server_picture(token)
     url = 'https://api.vk.com/method/photos.saveWallPhoto'
-    photo = upload_server_picture(token)[0]
-    server = upload_server_picture(token)[1]
-    hash = upload_server_picture(token)[2]
     params = {
         'group_id': 214371524,
         'server': server,
@@ -67,5 +64,6 @@ if __name__ == "__main__":
 
     token = os.getenv('ACCESS_TOKEN')
 
+    print(get_server_inf(214371524, token))
     download_xkcd_picture()
     print(save_wall_photo(token))
