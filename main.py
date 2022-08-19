@@ -5,6 +5,8 @@ from dotenv import load_dotenv
 from pprint import pprint
 
 
+GROUP_ID = os.getenv('GROUP_ID')
+
 def download_xkcd_picture():
     url = 'https://xkcd.com/353/info.0.json'
     response = requests.get(url)
@@ -32,7 +34,7 @@ def get_server_inf(group_id, token):
 
 def upload_server_picture(token):
     with open('image.jpg', 'rb') as file:
-        url = get_server_inf(214371524, token)
+        url = get_server_inf(GROUP_ID, token)
         files = {
             'photo': file
         }
@@ -47,7 +49,7 @@ def save_wall_photo(token):
     photo, server, hash = upload_server_picture(token)
     url = 'https://api.vk.com/method/photos.saveWallPhoto'
     params = {
-        'group_id': 214371524,
+        'group_id': GROUP_ID,
         'server': server,
         'photo': photo,
         'hash': hash,
@@ -64,6 +66,6 @@ if __name__ == "__main__":
 
     token = os.getenv('ACCESS_TOKEN')
 
-    print(get_server_inf(214371524, token))
+    print(get_server_inf(GROUP_ID, token))
     download_xkcd_picture()
     print(save_wall_photo(token))
