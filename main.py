@@ -30,11 +30,11 @@ def get_server_inf(group_id, token):
     }
     response = requests.get(url, params=params)
 
-    return response.json()['response']['upload_url']
+    return response.json()['response']
 
 def upload_server_picture(token):
     with open('image.jpg', 'rb') as file:
-        url = get_server_inf(GROUP_ID, token)
+        url = get_server_inf(GROUP_ID, token)['upload_url']
         files = {
             'photo': file
         }
@@ -47,6 +47,7 @@ def upload_server_picture(token):
 
 def save_wall_photo(token):
     photo, server, hash = upload_server_picture(token)
+
     url = 'https://api.vk.com/method/photos.saveWallPhoto'
     params = {
         'group_id': GROUP_ID,
@@ -58,7 +59,14 @@ def save_wall_photo(token):
     }
     response = requests.post(url, params=params)
 
-    return response.json()
+    photo_id = response.json()['response']['id']
+    owner_id = response.json()['response']['owner_id']
+
+    return photo_id, owner_id
+
+def publication_comic():
+
+    url =
 
 
 if __name__ == "__main__":
@@ -66,6 +74,5 @@ if __name__ == "__main__":
 
     token = os.getenv('ACCESS_TOKEN')
 
-    print(get_server_inf(GROUP_ID, token))
     download_xkcd_picture()
     print(save_wall_photo(token))
