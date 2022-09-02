@@ -13,7 +13,7 @@ To automatically publish a post, the code uses the VK app you must click create 
 ```
 https://oauth.vk.com/oauth/authorize?client_id=8213967&response_type=token&scope=photos,groups,offline,wall
 ```
-to the one we received, follow this link, give permission, after you will be transferred to the page, in its link there will be an `access_token=` and copy everything up to the & sign. After that, in the `.env` file, write `ACCESS_TOKEN=your_access_token`. Well, it remains only to create a group, for this, follow this link and click create a community, after you have created a community, go to the community page and copy the *NUMBERS* after the club in the link. After in our `.env` file we create `GROUP_ID=your_group_ID`. In addition, if you have a version error, you can create in .env specify the version of vk api API_VERSION=
+to the one we received, follow this link, give permission, after you will be transferred to the page, in its link there will be an `access_token=` and copy everything up to the & sign. After that, in the `.env` file, write `ACCESS_TOKEN=your_access_token`. Well, it remains only to create a group, for this, follow this link and click create a community, after you have created a community, go to the community page and copy the *NUMBERS* after the club in the link. After in our `.env` file we create `GROUP_ID=your_group_ID`. In addition, if you have a version error, you can create in .env specify the version of vk api `API_VERSION=api_version`.
 
 ### How to run
 To run the program itself, you need to write the following command on the command line:
