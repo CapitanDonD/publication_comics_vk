@@ -12,8 +12,8 @@ def randomize_comic_number():
 
     return random_comic_num
 
-def download_xkcd_picture():
-    url = f'https://xkcd.com/{randomize_picture()}/info.0.json'
+def download_xkcd_comic():
+    url = f'https://xkcd.com/{randomize_comic_number()}/info.0.json'
     response = requests.get(url)
     image_url = response.json()['img']
     comment = response.json()['alt']
@@ -21,12 +21,16 @@ def download_xkcd_picture():
 
     response.raise_for_status()
 
-    with open('image.jpg', "wb") as file:
-        file.write(image_response.content)
+    try:
+        with open('image.jpg', "wb") as file:
+            file.write(image_response.content)
+        os.remove('image.jpg')
+    except ValueError:
+        print('Файл не удалось загрузить. Проверьте ссылку или запрос на правильность составления.')
 
     return comment
 
-def get_server_inf(group_id, token, api_version):
+def get_comic_inf(group_id, token, api_version):
     url = 'https://api.vk.com/method/photos.getWallUploadServer'
     params = {
         'access_token': token,
@@ -34,25 +38,24 @@ def get_server_inf(group_id, token, api_version):
         'group_id': group_id
     }
     response = requests.get(url, params=params)
+    response.raise_for_status()
 
-    return response.json()['response']
+    return response.json()['response']['upload_url']
 
-def upload_server_picture(token, group_id, api_version):
+def upload_server_comic(url):
     with open('image.jpg', 'rb') as file:
-        url = get_server_inf(group_id, token, api_version)['upload_url']
         files = {
             'photo': file
         }
         response = requests.post(url, files=files)
-        photo = response.json()['photo']
-        server = response.json()['server']
-        hash = response.json()['hash']
+    unpack_response = response.json()
+    photo = unpack_response['photo']
+    server = unpack_response['server']
+    photo_hash = unpack_response['hash']
 
-    return photo, server, hash
+    return photo, server, photo_hash
 
-def save_wall_photo(token, group_id, api_version):
-    photo, server, hash = upload_server_picture(token, group_id, api_version)
-
+def save_wall_comic(photo, server, hash, group_id, token, api_version):
     url = 'https://api.vk.com/method/photos.saveWallPhoto'
     params = {
         'group_id': group_id,
@@ -60,19 +63,20 @@ def save_wall_photo(token, group_id, api_version):
         'photo': photo,
         'hash': hash,
         'access_token': token,
-        'v': '5.131'
+        'v': api_version
     }
     response = requests.post(url, params=params)
+    response.raise_for_status()
 
-    photo_id = response.json()['response'][0]['id']
-    owner_id = response.json()['response'][0]['owner_id']
+    unpack_response = response.json()
+
+    photo_id = unpack_response['response'][0]['id']
+    owner_id = unpack_response['response'][0]['owner_id']
 
     return photo_id, owner_id
 
-def publication_comic(token, group_id, api_version):
-    photo_id, owner_id = save_wall_photo(token, group_id, api_version)
-
-    post_text = download_xkcd_picture()
+def publicate_comic(token, group_id, api_version, owner_id, photo_id):
+    post_text = download_xkcd_comic()
 
     url = 'https://api.vk.com/method/wall.post'
     params =  {
@@ -85,6 +89,7 @@ def publication_comic(token, group_id, api_version):
     }
 
     response = requests.post(url, params=params)
+    response.raise_for_status()
 
     return response.json()
 
@@ -93,11 +98,14 @@ def main():
 
     group_id = os.getenv('GROUP_ID')
     api_version = os.getenv('API_VERSION', default='5.131')
+    vk_implicit_flow_token = os.getenv('VK_IMPLICIT_FLOW_TOKEN')
 
-    token = os.getenv('ACCESS_TOKEN')
+    upload_url = get_comic_inf(group_id, vk_implicit_flow_token, api_version)
+    photo, server, photo_hash = upload_server_comic(upload_url)
+    photo_id, owner_id = save_wall_comic(photo, server, photo_hash, group_id, vk_implicit_flow_token, api_version)
 
-    download_xkcd_picture()
-    publication_comic(token,  group_id, api_version)
+    download_xkcd_comic()
+    publicate_comic(vk_implicit_flow_token,  group_id, api_version,  owner_id, photo_id)
 
 
 if __name__ == "__main__":
