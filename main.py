@@ -15,18 +15,14 @@ def randomize_comic_number():
 def download_xkcd_comic():
     url = f'https://xkcd.com/{randomize_comic_number()}/info.0.json'
     response = requests.get(url)
+    response.raise_for_status()
     image_url = response.json()['img']
     comment = response.json()['alt']
     image_response = requests.get(image_url)
+    image_response.raise_for_status()
 
-    response.raise_for_status()
-
-    try:
-        with open('image.jpg', "wb") as file:
-            file.write(image_response.content)
-        os.remove('image.jpg')
-    except ValueError:
-        print('Файл не удалось загрузить. Проверьте ссылку или запрос на правильность составления.')
+    with open('image.jpg', "wb") as file:
+        file.write(image_response.content)
 
     return comment
 
@@ -75,16 +71,14 @@ def save_wall_comic(photo, server, hash, group_id, token, api_version):
 
     return photo_id, owner_id
 
-def publicate_comic(token, group_id, api_version, owner_id, photo_id):
-    post_text = download_xkcd_comic()
-
+def publicate_comic(token, group_id, api_version, owner_id, photo_id, comment):
     url = 'https://api.vk.com/method/wall.post'
     params =  {
         'v': api_version,
         'access_token': token,
         'owner_id': -int(group_id),
         'attachments': f'photo{owner_id}_{photo_id}',
-        'message': post_text,
+        'message': comment,
         'from_group': 1
     }
 
@@ -96,17 +90,20 @@ def publicate_comic(token, group_id, api_version, owner_id, photo_id):
 def main():
     load_dotenv()
 
-    group_id = os.getenv('GROUP_ID')
-    api_version = os.getenv('API_VERSION', default='5.131')
-    vk_implicit_flow_token = os.getenv('VK_IMPLICIT_FLOW_TOKEN')
+    try:
+        get_a_comment = download_xkcd_comic()
+        group_id = os.getenv('VK_GROUP_ID')
+        api_version = os.getenv('API_VERSION', default='5.131')
+        vk_implicit_flow_token = os.getenv('VK_IMPLICIT_FLOW_TOKEN')
 
-    upload_url = get_comic_inf(group_id, vk_implicit_flow_token, api_version)
-    photo, server, photo_hash = upload_server_comic(upload_url)
-    photo_id, owner_id = save_wall_comic(photo, server, photo_hash, group_id, vk_implicit_flow_token, api_version)
+        upload_url = get_comic_inf(group_id, vk_implicit_flow_token, api_version)
+        photo, server, photo_hash = upload_server_comic(upload_url)
+        photo_id, owner_id = save_wall_comic(photo, server, photo_hash, group_id, vk_implicit_flow_token, api_version)
 
-    download_xkcd_comic()
-    publicate_comic(vk_implicit_flow_token,  group_id, api_version,  owner_id, photo_id)
-
+        publicate_comic(vk_implicit_flow_token,  group_id, api_version,  owner_id, photo_id, get_a_comment)
+        os.remove('image.jpg')
+    except ValueError:
+        print('Файл не удалось загрузить. Проверьте ссылку или запрос на правильность составления.')
 
 if __name__ == "__main__":
     main()
