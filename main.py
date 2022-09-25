@@ -82,7 +82,7 @@ def publish_comic(token, group_id, api_version, owner_id, photo_id, comment):
     params = {
         'v': api_version,
         'access_token': token,
-        'owner_id': group_id,
+        'owner_id': '-'+group_id,
         'attachments': f'photo{owner_id}_{photo_id}',
         'message': comment,
         'from_group': 1
