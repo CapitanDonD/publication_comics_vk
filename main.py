@@ -3,6 +3,7 @@ import random
 
 import requests
 from dotenv import load_dotenv
+from time import sleep
 
 
 def randomize_comic_number():
@@ -82,7 +83,7 @@ def publish_comic(token, group_id, api_version, owner_id, photo_id, comment):
     params = {
         'v': api_version,
         'access_token': token,
-        'owner_id': '-'+group_id,
+        'owner_id': f'-{group_id}',
         'attachments': f'photo{owner_id}_{photo_id}',
         'message': comment,
         'from_group': 1
@@ -123,8 +124,9 @@ def main():
             vk_group_id, api_version,
             owner_id, photo_id, comment
         )
-        os.remove('image.jpg')
-    except ValueError:
+    except:
+        sleep(1)
+    finally:
         os.remove('image.jpg')
 
 
