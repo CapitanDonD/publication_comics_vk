@@ -124,8 +124,6 @@ def main():
             vk_group_id, api_version,
             owner_id, photo_id, comment
         )
-    except:
-        sleep(1)
     finally:
         os.remove('image.jpg')
 
